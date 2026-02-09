@@ -133,16 +133,6 @@ just render   # parse, verify, render to HTML -- all in one
 
 See [justfile](justfile) for all commands. Requires `uv` (for Python deps) and `just`.
 
-## Files
-
-```
-example.argdown        # main example with real sources
-argmap.py              # verify + render (single file: credences, math, graph, cruxes, HTML)
-justfile               # repeatable commands
-example.json           # parsed JSON (generated)
-example_verified.html  # enriched HTML (generated)
-alternatives/          # comparison: Lean4 DSL, ACE, JSON Schema approaches
-```
 
 The [skill file](../../.claude/skills/argdown/SKILL.md) is the procedural guide for writing arguments.
 
