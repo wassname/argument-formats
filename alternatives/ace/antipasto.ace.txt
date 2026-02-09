@@ -1,0 +1,169 @@
+/* =================================================================
+   AntiPaSTO2 argument in Attempto Controlled English (ACE)
+
+   ACE is a subset of English that can be parsed to first-order logic.
+   Parser: APE (Attempto Parsing Engine) at https://attempto.ifi.uzh.ch/ape/
+   Reasoner: RACE can check consistency of the parsed sentences.
+
+   ACE syntax rules:
+   - Every sentence must be parseable by the ACE grammar
+   - Use "there is/are" for existential claims
+   - Use "every/each/all" for universal claims
+   - Use "if...then..." for implications
+   - Anaphoric references with "it", "he/she", "the X"
+   - No metaphors, no ambiguous constructions
+   ================================================================= */
+
+/* --- Ontology (define our terms) --- */
+
+Every observation is a premise.
+Every assumption is a premise.
+Every definition is a premise.
+
+Every observation has a source.
+Every observation has a quote or does not have a quote.
+Every assumption does not have a source.
+
+Every inference references at least 2 premises.
+Every inference has a text.
+
+Every argument has at least 2 premises.
+Every argument has at least 1 inference.
+Every argument has a conclusion.
+
+/* --- Argument 1: Single LoRA Eliminates Gradient Isolation --- */
+
+There is an observation O1.
+O1 has the text "With dual LoRA adapters, coherence gradients only flow through the active adapter, creating 10-20x gradient imbalance".
+O1 has the source "./RESEARCH_LOG.md".
+O1 has the quote "was 10-20x imbalance with dual adapters".
+
+There is an observation O2.
+O2 has the text "A single adapter scaled by coeff routes both directions through the same parameters".
+O2 has the source "./src/model.py".
+
+There is an observation O3.
+O3 has the text "Single LoRA achieves SI 24.28 vs InnerPiSSA SI 22.535".
+O3 has the source "./RESEARCH_LOG.md".
+
+There is an inference I1.
+I1 references O1 and O2 and O3.
+I1 has the text "O1 shows dual fails. O2 fixes this by construction. O3 confirms empirically.".
+
+There is a conclusion C1.
+C1 has the text "Single LoRA plus scaling is more stable and at least as performant".
+
+There is an argument A1.
+A1 has the premise O1.
+A1 has the premise O2.
+A1 has the premise O3.
+A1 has the inference I1.
+A1 has the conclusion C1.
+
+C1 supports the main-claim.
+
+/* --- Argument 2: Data-Aligned Init Reduces Variance --- */
+
+There is an observation O4.
+O4 has the text "Orthogonal init has seed variance std approximately 7.5 SI with collapse at epoch 4-5".
+O4 has the source "./RESEARCH_LOG.md".
+O4 has the quote "Orthogonal init is a lottery ticket".
+
+There is an observation O5.
+O5 has the text "Wanda-weighted PCA with min of std-cho and std-rej initializes in task-relevant subspace".
+O5 has the source "./RESEARCH_LOG.md".
+
+There is an observation O6.
+O6 has the text "Min mode has SI mean 16.07 and t-stat 2.31 from 7 seeds".
+O6 has the source "./RESEARCH_LOG.md".
+
+There is an inference I2.
+I2 references O4 and O5 and O6.
+I2 has the text "O4 shows random init is high-variance. O5 proposes task-aligned alternative. O6 shows min mode wins.".
+
+There is a conclusion C2.
+C2 has the text "Data-aligned initialization outperforms random init for LoRA steering".
+
+There is an argument A2.
+A2 has the premise O4.
+A2 has the premise O5.
+A2 has the premise O6.
+A2 has the inference I2.
+A2 has the conclusion C2.
+
+C2 supports the main-claim.
+
+/* --- Undercut: Moderate Init Effect --- */
+
+There is an observation O7.
+O7 has the text "t-stat 2.31 with 7 seeds gives p approximately 0.03 one-sided".
+O7 has the source "./RESEARCH_LOG.md".
+
+There is an observation O8.
+O8 has the text "SI q10 8.99 and q90 21.87 for min mode overlap most other modes".
+O8 has the source "./RESEARCH_LOG.md".
+
+There is an inference I3.
+I3 references O7 and O8.
+I3 has the text "O7 and O8 suggest the ranking could shift with more seeds.".
+
+There is a conclusion C3.
+C3 has the text "The min-union-signed ranking is not yet robust".
+
+/* ACE can express that C3 undercuts A2's inference: */
+C3 undercuts the inference of A2.
+
+/* --- Attack: Metric Gaming --- */
+
+There is an observation O9.
+O9 has the text "SI includes pmass-ratio-squared which penalizes incoherence".
+O9 has the source "./src/eval.py".
+
+There is a definition D1.
+D1 has the text "If a constraint optimizes for X and the metric rewards X then the comparison is circular".
+
+There is an inference I4.
+I4 references O9 and D1.
+I4 has the text "Constrained runs get a metric bonus by construction.".
+
+There is a conclusion C4.
+C4 has the text "Constrained runs may score higher partly because SI rewards coherence".
+
+C4 attacks the conclusion of A3.
+
+/* --- Shared crux --- */
+
+There is an assumption K1.
+K1 has the text "LLM behavior can be steered by linear scaling of a low-rank adapter".
+
+/* In ACE, we can express dependency: */
+If K1 is false then C1 is unsupported.
+If K1 is false then C2 is unsupported.
+
+/* =================================================================
+   VERDICT on ACE for this use case
+
+   What we got:
+   + Every sentence is parseable to FOL (first-order logic)
+   + RACE reasoner can check consistency:
+     - "Every observation has a source" + "O9 has the source" = consistent
+     - If we forgot a source on an observation, RACE flags inconsistency
+   + Can express relations (supports, attacks, undercuts)
+   + Can express conditional dependencies (if K1 false then C1 unsupported)
+
+   What we didn't get:
+   - Very verbose (~4x more lines than Argdown)
+   - Awkward phrasing to stay within ACE grammar
+   - No math verification (can't check "24.28 > 22.535")
+   - No visual output
+   - Tooling is old (Java, last major update ~2013)
+   - LLMs will struggle to produce valid ACE reliably
+   - The actual inference checking is shallow: RACE checks
+     consistency of the FOL translation, not whether the
+     natural language inference actually follows
+
+   The consistency checking is real but limited. It catches
+   structural errors (missing source on observation) but not
+   semantic errors (bad inference). Same limitation as Lean4
+   but with worse tooling and more verbose syntax.
+   ================================================================= */

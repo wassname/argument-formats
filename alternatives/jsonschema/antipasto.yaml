@@ -1,0 +1,143 @@
+title: "AntiPaSTO2: Why Single LoRA Steering Works"
+author: wassname
+
+claims:
+  main_claim:
+    text: "A single LoRA adapter with linear scaling is the best current method for bidirectional LLM steering"
+  linear_steering_hypothesis:
+    text: "LLM behavior can be steered by linear scaling of a low-rank adapter"
+    tag: assumption
+  si_validity:
+    text: "Surgical Informedness (TPR - 2*FPR) * pmass_ratio^2 correctly measures steering quality"
+    tag: assumption
+
+arguments:
+  - name: "Single LoRA Eliminates Gradient Isolation"
+    premises:
+      - id: dual_gradient_problem
+        text: "Dual LoRA adapters create 10-20x gradient imbalance: coherence gradients only flow through the active adapter"
+        tag: observation
+        source:
+          url: "./RESEARCH_LOG.md"
+          quote: "was 10-20x imbalance with dual adapters"
+      - id: single_lora_fix
+        text: "A single adapter scaled by coeff={+1, 0, -1} routes both directions' gradients through the same parameters"
+        tag: observation
+        source:
+          url: "./src/model.py"
+      - id: si_comparison
+        text: "Single LoRA achieves SI=24.28 vs InnerPiSSA's SI=22.535 on same eval"
+        tag: observation
+        source:
+          url: "./RESEARCH_LOG.md"
+        math: "24.28 > 22.535"
+    inferences:
+      - from: [dual_gradient_problem, single_lora_fix, si_comparison]
+        text: "(1) shows dual fails due to gradient isolation; (2) fixes by construction; (3) confirms empirically"
+    conclusion:
+      id: single_lora_works
+      text: "Single LoRA + scaling is more stable and at least as performant"
+    relations:
+      - type: supports
+        target: main_claim
+
+  - name: "Data-Aligned Init Reduces Variance"
+    premises:
+      - id: orthogonal_variance
+        text: "Orthogonal init: seed variance std ~7.5 SI, collapse at epoch 4-5"
+        tag: observation
+        source:
+          url: "./RESEARCH_LOG.md"
+          quote: "Orthogonal init is a lottery ticket"
+      - id: wanda_init
+        text: "Wanda-weighted PCA with min(std(cho), std(rej)) initializes in task-relevant subspace"
+        tag: observation
+        source:
+          url: "./RESEARCH_LOG.md"
+      - id: init_sweep
+        text: "min mode: SI mean=16.07, t=+2.31 (7 seeds). Worst (minrelu): SI=2.67, t=-4.97"
+        tag: observation
+        source:
+          url: "./RESEARCH_LOG.md"
+        math: "16.07 > 2.67"
+    inferences:
+      - from: [orthogonal_variance, wanda_init, init_sweep]
+        text: "(1) random init high-variance; (2) task-aligned alternative; (3) min mode wins with t=+2.31"
+    conclusion:
+      id: init_matters
+      text: "Data-aligned initialization reliably outperforms random init"
+    relations:
+      - type: supports
+        target: main_claim
+
+  - name: "Moderate Init Effect"
+    premises:
+      - id: small_t
+        text: "t=2.31 with 7 seeds is p~0.03 one-sided"
+        tag: observation
+        source:
+          url: "./RESEARCH_LOG.md"
+        math: "0.56 / (0.65 / 7**0.5)"  # should be ~2.28, close to claimed 2.31
+      - id: wide_cis
+        text: "si_q10=8.99, si_q90=21.87 for min mode, overlaps most other modes"
+        tag: observation
+        source:
+          url: "./RESEARCH_LOG.md"
+    inferences:
+      - from: [small_t, wide_cis]
+        text: "(1) and (2) suggest ranking could shift with more seeds"
+    conclusion:
+      id: init_ranking_fragile
+      text: "The min > union > signed ranking is not yet robust"
+    relations:
+      - type: undercuts
+        target: "Data-Aligned Init Reduces Variance"
+
+  - name: "Constraints Shape Not Limit"
+    premises:
+      - id: unconstrained_run
+        text: "coh=0, mono=0, clamp=0.03: SI=19.1, smooth loss, but ortho_delta=6.5"
+        tag: observation
+        source:
+          url: "./RESEARCH_LOG.md"
+          quote: "Adapter expressive enough; constraints shape which changes"
+      - id: constrained_beats
+        text: "Best constrained: SI=24.28, ortho_delta ~1.5"
+        tag: observation
+        source:
+          url: "./RESEARCH_LOG.md"
+        math: "24.28 > 19.1"
+      - id: expressiveness
+        text: "The adapter has sufficient capacity; bottleneck is directing it"
+        tag: assumption
+    inferences:
+      - from: [unconstrained_run, constrained_beats, expressiveness]
+        text: "(1) CAN learn without constraints; (2) BETTER with; given (3), constraints improve SNR"
+    conclusion:
+      id: constraints_help
+      text: "Coherence + monotonic constraints improve steering by reducing off-target"
+    relations:
+      - type: supports
+        target: main_claim
+
+  - name: "Metric Gaming"
+    premises:
+      - id: si_penalizes
+        text: "SI includes pmass_ratio^2 which penalizes incoherence"
+        tag: observation
+        source:
+          url: "./src/eval.py"
+      - id: circular
+        text: "If constraint optimizes for X and metric rewards X, comparison is circular"
+        tag: definition
+    inferences:
+      - from: [si_penalizes, circular]
+        text: "(1) + (2): constrained runs get metric bonus by construction"
+    conclusion:
+      id: metric_confound
+      text: "Constrained may score higher partly because SI rewards coherence"
+    relations:
+      - type: attacks
+        target: constraints_help
+      - type: attacks
+        target: si_validity
