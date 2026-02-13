@@ -7,6 +7,10 @@ default_stem := "example"
 json stem=default_stem:
     npx @argdown/cli json {{stem}}.argdown "$(dirname {{stem}})"
 
+# Verify only (text output for agents - no HTML rendering)
+verify stem=default_stem: (json stem)
+    uv run --with sympy --with networkx python argmap.py {{stem}}.json --verify-only
+
 # Verify + render enriched HTML (single step, like quarto render)
 render stem=default_stem: (json stem)
     uv run --with sympy --with networkx python argmap.py {{stem}}.json {{stem}}_verified.html

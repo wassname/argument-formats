@@ -90,13 +90,16 @@ Output: `[Closes Gap]` implied credence ~66% (+0.67 log-odds; pro outweighs con 
 ---
 ## Verification
 
+Run the verifier script after writing. Fix errors until it passes:
+
 ```bash
-just render <stem>          # e.g. just render my_argument
-# or manually:
-npx @argdown/cli json <stem>.argdown . && uv run python argmap.py <stem>.json <stem>_verified.html
+just verify <stem>          # text output: checks + computed credences
+just render <stem>          # also generates HTML with colored cards
 ```
 
-Fix errors until `just render` passes. The HTML shows computed credences, colored cards, and explicit math.
+The verifier checks: credence consistency, PCS math, graph structure, and contradiction constraints. It computes conclusion credences from premises and outputs a bottom-line assessment.
+
+**Agent workflow**: write .argdown -> run `just verify` -> read errors -> fix -> re-run until "All checks passed."
 
 ## Tags
 
@@ -113,7 +116,7 @@ Fix errors until `just render` passes. The HTML shows computed credences, colore
 
 ## Key Rules (deviations from standard Argdown)
 
-1. **`{credence: X}`** on premises = trust in source (0-1). **`{inference: X}`** on conclusions = reasoning strength given premises (0-1). The conclusion's credence is *computed* (product of premise credences x inference strength, via log-odds). Never write `{credence}` on a conclusion.
+1. **`{credence: X}`** on premises = trust in source (0-1). **`{inference: X}`** on conclusions = reasoning strength given premises (0-1). Never write `{credence}` on a conclusion. Example: `{credence: 0.7}` on a premise, `{inference: 0.6}` on its conclusion. The conclusion's credence is *computed*: `product(premise credences) * inference`, aggregated via log-odds.
 2. **Top-level claim** gets NO hardcoded credence. It's computed via log-odds aggregation.
 3. **`#observation`** premises MUST have: `[Label](url)` link + `> "exact quote"` blockquote.
 4. **`#assumption`** premises need `{credence: X, reason: "..."}` but no URL.
@@ -127,7 +130,7 @@ Fix errors until `just render` passes. The HTML shows computed credences, colore
 2. Search for evidence -- find papers, extract ONE direct quote per claim
 3. Write top-level structure: `[Thesis]` with `+ <Pro>` and `- <Con>` arguments
 4. Write each argument as a PCS (premise-conclusion structure) with numbered premises, inference bar, named conclusion
-5. Run `just render <stem>` to verify -- fix errors until it passes
+5. Run `just verify <stem>` -- fix errors until "All checks passed", then `just render` for HTML
 
 ---
 
@@ -271,6 +274,31 @@ Tag with `#cluster-X` to flag shared evidence base:
 
 ---
 
+
+---
+
+## Ensemble Mode
+
+To compare two agents' argument maps on the same topic:
+
+1. Agent A writes `topic_a.argdown`, Agent B writes `topic_b.argdown`
+2. A third agent reads both and produces a comparison:
+
+```
+## Comparison: [Topic]
+|                    | Agent A          | Agent B          |
+|--------------------|------------------|------------------|
+| Thesis credence    | 0.42             | 0.58             |
+| # pro arguments    | 3                | 2                |
+| # con arguments    | 2                | 3                |
+| Key disagreement   | [Claim X]: A=0.8, B=0.3 |          |
+| Missing in A       | [Claim Y]        |                  |
+| Missing in B       | [Claim Z]        |                  |
+```
+
+3. The arbiter merges into `topic_merged.argdown`, keeping the stronger-sourced version of each disputed claim, and noting disagreements as comments.
+
+---
 
 ## Common Mistakes
 

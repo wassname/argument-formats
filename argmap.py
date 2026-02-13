@@ -582,24 +582,34 @@ details.source-code pre {{
 # --- Main ---
 
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else None
-    if path and Path(path).exists():
-        data = json.loads(Path(path).read_text())
+    import argparse
+    parser = argparse.ArgumentParser(description="Verify and render argdown JSON.")
+    parser.add_argument("input", nargs="?", help="Input JSON file (or stdin)")
+    parser.add_argument("output", nargs="?", help="Output HTML file")
+    parser.add_argument("--verify-only", action="store_true",
+                        help="Only verify (text output), skip HTML rendering")
+    args = parser.parse_args()
+
+    if args.input and Path(args.input).exists():
+        data = json.loads(Path(args.input).read_text())
     else:
         data = json.load(sys.stdin)
 
     # Verify (prints to stdout, mutates statements with computed credences)
     exit_code, statements, relations = verify(data)
 
+    if args.verify_only:
+        sys.exit(exit_code)
+
     # Find matching .argdown source for expandable raw view
     argdown_source = None
-    if path:
-        argdown_path = Path(path).with_suffix(".argdown")
+    if args.input:
+        argdown_path = Path(args.input).with_suffix(".argdown")
         if argdown_path.exists():
             argdown_source = argdown_path.read_text()
 
     # Render
-    output = sys.argv[2] if len(sys.argv) > 2 else "example_verified.html"
+    output = args.output or "example_verified.html"
     Path(output).write_text(render_html(data, statements, relations, argdown_source))
     print(f"\nRendered to {output}")
 
