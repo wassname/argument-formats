@@ -1,0 +1,237 @@
+===
+title: Should Governments Mandate Open-Sourcing of Frontier AI Model Weights?
+author: Deep Research Agent
+model:
+    mode: strict
+===
+
+// Top-level claim: credence is computed from arguments below
+[Mandate Open Weights]: Governments should mandate that developers
+  of frontier AI models release model weights publicly.
+  + <Marginal Risk Low>
+  + <Innovation And Research>
+  + <Power Distribution>
+  + <NTIA Recommends Openness>
+  - <Safety Training Removal>
+  - <Irreversibility Problem>
+  - <Enforcement Difficulty>
+
+// ============================================================
+// Sub-Question Decomposition (Pattern 6)
+// ============================================================
+
+[Safety Crux]: Open weight release improves net safety
+  through external scrutiny and research. #crux
+  + [Mandate Open Weights]
+
+[Misuse Crux]: Open weight release enables catastrophic misuse
+  that closed models would prevent. #crux
+  - [Mandate Open Weights]
+
+[Enforcement Crux]: A government mandate to open-source
+  frontier weights is practically enforceable. #crux
+  + [Mandate Open Weights]
+
+// ============================================================
+// Contradiction: Value Tension (Pattern 4)
+// ============================================================
+
+[Safety Via Transparency]: The primary path to AI safety is
+  maximizing external scrutiny, red-teaming, and reproducible
+  research on model internals. #assumption
+  {credence: 0.55, reason: "supported by open-science norms but contested for frontier risk"}
+
+[Safety Via Restriction]: The primary path to AI safety is
+  restricting access to dangerous capabilities, accepting
+  reduced scrutiny as a tradeoff. #assumption
+  {credence: 0.45, reason: "supported by biosecurity/nuclear precedent but AI differs structurally"}
+
+// Contradiction: exactly one primary path. P(Transparency) + P(Restriction) = 1.
+[Safety Via Transparency]
+  - [Safety Via Restriction]
+
+[Safety Via Restriction]
+  - [Safety Via Transparency]
+
+// ============================================================
+// PRO ARGUMENTS
+// ============================================================
+
+# Evidence For
+
+<Marginal Risk Low>
+
+(1) [Marginal Risk Finding]: Kapoor et al. 2024 assess the marginal risk
+    of open foundation models relative to pre-existing technologies. #observation
+    > "current research is insufficient to effectively characterize the marginal risk of open foundation models relative to pre-existing technologies"
+    [Kapoor et al. 2024](https://arxiv.org/abs/2403.07918)
+    {credence: 0.82, reason: "25 co-authors including Stanford HAI and Princeton, peer reviewed at ICML"}
+(2) [Existing Harms Baseline]: Most misuse vectors (cyberattacks, scams,
+    disinfo) are already achievable with pre-existing tools and closed
+    model APIs. #assumption
+    {credence: 0.80, reason: "conventional wisdom among security researchers; search engines and existing tools suffice for most attacks"}
+----
+(3) [Low Marginal Risk Conclusion]: Open weight models do not substantially
+    increase marginal risk for most misuse categories compared to existing
+    technology.
+    {inference: 0.70, reason: "strong for current models, weaker for future frontier capabilities"}
+  +> [Mandate Open Weights]
+
+<Innovation And Research>
+
+(1) [OLMo Reproducibility]: Groeneveld et al. 2024 release OLMo with
+    full weights, training data, and code to accelerate language model
+    science. #observation
+    > "OLMo: Accelerating the Science of Language Models"
+    [Groeneveld et al. 2024](https://arxiv.org/abs/2402.00838)
+    {credence: 0.88, reason: "concrete artifact from Allen AI, widely adopted by researchers"}
+(2) [Research Requires Weights]: Mechanistic interpretability, adversarial
+    robustness testing, and bias auditing all require access to model
+    weights, not just API access. #assumption
+    {credence: 0.90, reason: "consensus in ML safety research; API-only access blocks gradient-based analysis"}
+----
+(3) [Open Weights Enable Safety Research]: Mandating open weights would
+    substantially accelerate independent AI safety research.
+    {inference: 0.75, reason: "clear mechanism but mandate adds coercion beyond voluntary release"}
+  +> [Safety Crux]
+
+<Power Distribution>
+
+(1) [Concentration Concern]: Kapoor et al. 2024 identify that open
+    foundation models diversify the actors in AI development beyond a
+    few large developers. #observation
+    > "Open foundation models present significant benefits, with some caveats, that span innovation, competition, the distribution of decision-making power, and transparency"
+    [Kapoor et al. 2024](https://arxiv.org/abs/2403.07918)
+    {credence: 0.82, reason: "same highly-cited source, this claim is less contested"}
+(2) [Concentration Is Dangerous]: Concentrating frontier AI capability
+    in 3-5 companies creates single points of failure and
+    regulatory capture risk. #assumption
+    {credence: 0.70, reason: "plausible by analogy to tech monopolies, but companies also invest in safety"}
+----
+(3) [Distribution Improves Governance]: Mandating open weights would
+    reduce dangerous concentration of AI capability.
+    {inference: 0.60, reason: "weights alone are insufficient without compute and data access"}
+  +> [Mandate Open Weights]
+
+<NTIA Recommends Openness>
+
+(1) [NTIA Finding]: The U.S. NTIA 2024 report concludes that current
+    evidence does not warrant restricting open model weights. #observation
+    > "current evidence is not sufficient to definitively determine either that restrictions on such open weight models are warranted, or that restrictions will never be appropriate in the future"
+    [NTIA 2024](https://www.ntia.gov/issues/artificial-intelligence/open-model-weights-report)
+    {credence: 0.78, reason: "official U.S. government report based on 332 public comments, but political context matters"}
+(2) [Policy Baseline]: Absent clear evidence of harm, liberal democracies
+    should default to permitting information sharing rather than
+    restricting it. #assumption
+    {credence: 0.75, reason: "strong liberal tradition, but exceptions exist for WMD-adjacent tech"}
+----
+(3) [Default To Openness]: The policy default should favor open weights
+    until evidence of concrete marginal harm emerges.
+    {inference: 0.65, reason: "reasonable but 'mandate' goes beyond 'permit' -- forcing release is stronger than allowing it"}
+  +> [Mandate Open Weights]
+
+// ============================================================
+// CON ARGUMENTS
+// ============================================================
+
+# Evidence Against
+
+<Safety Training Removal>
+
+(1) [Fine Tune Attack]: Qi et al. 2023 show that safety alignment of
+    LLMs can be removed by fine-tuning on as few as 10 adversarial
+    examples. #observation
+    > "the safety alignment of LLMs can be compromised by fine-tuning with only a few adversarially designed training examples"
+    [Qi et al. 2023](https://arxiv.org/abs/2310.03693)
+    {credence: 0.88, reason: "well-cited, replicated across models, published at ICLR"}
+(2) [Weights Enable Fine Tuning]: Open weight release gives anyone the
+    ability to fine-tune, unlike API-only access where the provider
+    controls fine-tuning. #assumption
+    {credence: 0.95, reason: "definitionally true -- weights are sufficient for fine-tuning"}
+----
+(3) [Safety Removal Is Trivial]: Mandating open weights would make
+    safety guardrail removal trivially easy for any actor with
+    basic ML skills.
+    {inference: 0.85, reason: "direct logical consequence; 10 examples and $0.20 of compute"}
+  -> [Safety Crux]
+
+<Irreversibility Problem>
+
+(1) [Irreversibility Claim]: Bommasani et al. 2024 note that governing
+    open foundation models is complicated by the inability to revoke
+    access after release. #observation
+    > "Considerations for governing open foundation models"
+    [Bommasani et al. 2024, Science](https://doi.org/10.1126/science.adp1848)
+    {credence: 0.85, reason: "published in Science, authoritative venue"}
+(2) [Future Risk Uncertainty]: Frontier model capabilities are advancing
+    rapidly, and weights released today may enable harms not foreseeable
+    at release time. #assumption
+    {credence: 0.65, reason: "plausible concern but speculative about specific future harms"}
+--
+Irreversibility of release combined with uncertain future capabilities
+{uses: [1, 2]}
+--
+(3) [No Recall Possible]: A mandate forces irreversible release,
+    eliminating the option to restrict access if dangerous capabilities
+    are later discovered.
+    {inference: 0.80, reason: "strong logical step -- you cannot un-release weights"}
+  -> [Mandate Open Weights]
+
+<Enforcement Difficulty>
+
+(1) [Frontier AI Definition Problem]: Anderljung et al. 2023 discuss
+    the difficulty of defining which AI systems count as frontier and
+    should be regulated. #observation
+    > "Frontier AI Regulation: Managing Emerging Risks to Public Safety"
+    [Anderljung et al. 2023](https://arxiv.org/abs/2307.03718)
+    {credence: 0.80, reason: "multi-institutional author team, widely cited in policy discussions"}
+(2) [Jurisdiction Problem]: AI developers can relocate to jurisdictions
+    without mandates, and model weights can be leaked or
+    reverse-engineered. #assumption
+    {credence: 0.75, reason: "demonstrated by global software industry patterns"}
+----
+(3) [Mandate Unenforceable]: A government mandate to open-source frontier
+    weights would be difficult to define, scope, and enforce across
+    jurisdictions.
+    {inference: 0.70, reason: "strong for unilateral mandates, weaker if international coordination achieved"}
+  -> [Enforcement Crux]
+
+// ============================================================
+// Undercut (Pattern 3): Even if safety removal is easy,
+// the marginal risk argument limits its significance
+// ============================================================
+
+<Marginal Risk Undercut>
+
+(1) [Low Marginal Risk Conclusion]
+(2) [API Jailbreaks Exist]: Closed models are also jailbroken routinely
+    via prompt injection without needing weights. #assumption
+    {credence: 0.85, reason: "demonstrated repeatedly against GPT-4, Claude, etc."}
+----
+(3) [Safety Removal Not Marginal]: The ease of safety removal from open
+    models matters less when closed models are also routinely bypassed.
+    {inference: 0.55, reason: "partially valid but weight access enables more thorough removal than prompt hacks"}
+  _> <Safety Training Removal>
+
+// ============================================================
+// Synthesis: Bottom Line (Pattern 7)
+// ============================================================
+
+<Bottom Line>
+
+(1) [Low Marginal Risk Conclusion]
+(2) [Open Weights Enable Safety Research]
+(3) [Safety Removal Is Trivial]
+(4) [No Recall Possible]
+(5) [Default To Openness]
+(6) [Mandate Unenforceable]
+--
+Weighing pro and con arguments {uses: [1, 2, 3, 4, 5, 6]}
+--
+(7) [Verdict]: The case for mandating open weights is weak. Open release
+    has real benefits for research and competition, and current marginal
+    risks are low. But a mandate specifically is too strong: it forces
+    irreversible release, is hard to enforce, and the right policy is
+    permitting and encouraging openness rather than compelling it.
+    {inference: 0.40, reason: "pro-openness evidence is strong but supports permitting, not mandating; irreversibility and enforcement concerns reduce mandate case"}
+  -> [Mandate Open Weights]

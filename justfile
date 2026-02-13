@@ -1,16 +1,19 @@
 # Verified Argument Maps - repeatable commands
 
+# default file stem
+default_stem := "example"
+
 # Parse argdown to JSON
-json:
-    npx @argdown/cli json example.argdown .
+json stem=default_stem:
+    npx @argdown/cli json {{stem}}.argdown .
 
 # Verify + render enriched HTML (single step, like quarto render)
-render: json
-    uv run --with sympy --with networkx python argmap.py example.json example_verified.html
+render stem=default_stem: (json stem)
+    uv run --with sympy --with networkx python argmap.py {{stem}}.json {{stem}}_verified.html
 
 # Render argument map to SVG/PDF (argdown CLI)
-map:
-    npx @argdown/cli map example.argdown .
+map stem=default_stem:
+    npx @argdown/cli map {{stem}}.argdown .
 
 # Full pipeline
-all: render map
+all stem=default_stem: (render stem) (map stem)
