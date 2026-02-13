@@ -1,5 +1,5 @@
 
-# Verified Argument Maps
+# Verified Argdown
 
 Have your LLM ourput a structured argument, that is easy to verify.
 
